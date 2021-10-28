@@ -5,6 +5,8 @@
 YourMomBot is a discord bot that reads at text sent by
 users in a discord channel, and makes your mom jokes from them.
 
+Modified from [andylolu2/YourMumBot]s(https://github.com/andylolu2/YourMumBot).
+
 <!-- omit in toc -->
 
 # :warning: DISCLAIMER :warning:
