@@ -8,7 +8,7 @@ import numpy as np
 import constants as cst
 from helpers.logging import reset_logging, log_memory_used
 from data.processed.DiscordChat import DiscordChat
-from src.yourmumbot.YourMumModel import YourMumModel
+from src.yourmombot.YourMomModel import YourMomModel
 
 reset_logging()  # fix bug in stanza
 
@@ -17,14 +17,14 @@ log_level = logging.INFO
 total = cst.TESTING_SAMPLES
 
 # setup logging
-current_time = datetime.now().strftime('%H:%M:%S-%d-%m-%y')
-filename = f"{cst.LOGS_DIR}/tests/yourmumbot-{current_time}.log"
+current_time = datetime.now().strftime("%H:%M:%S-%d-%m-%y")
+filename = f"{cst.LOGS_DIR}/tests/yourmombot-{current_time}.log"
 Path(filename).parent.mkdir(parents=True, exist_ok=True)
-logger = logging.getLogger('tester')
+logger = logging.getLogger("tester")
 logging.basicConfig(level=log_level, filename=filename)
 logger.setLevel(log_level)
 
-with YourMumModel(corrector="language_tools", logger=logger) as model:
+with YourMomModel(corrector="language_tools", logger=logger) as model:
     # setup
     chat = DiscordChat()
     times = []
@@ -41,7 +41,7 @@ with YourMumModel(corrector="language_tools", logger=logger) as model:
     # main loop
     for msg in chat.sample(total):
         start_time = time.time()
-        outputs = model.yourmumify(msg)
+        outputs = model.yourmomify(msg)
         output = " ".join(outputs)
         if output != "":
             logger.info(f"Input:  {msg}")

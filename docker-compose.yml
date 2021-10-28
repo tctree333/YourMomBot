@@ -1,10 +1,9 @@
-version: "3.9"
+version: '3.9'
 services:
   bot:
     build:
       context: ./src
       dockerfile: ./bot/Dockerfile
-    image: andylolu24/yourmum-bot:latest
     environment:
       - ENV
       - DISCORD_BOT_TOKEN
@@ -17,10 +16,9 @@ services:
         limits:
           memory: 50m
   api:
-    build: 
+    build:
       context: ./src
       dockerfile: ./api/Dockerfile
-    image: andylolu24/yourmum-api:latest
     environment:
       - MODULE_NAME=api.main
       - MAX_WORKERS=1
@@ -33,7 +31,7 @@ services:
         limits:
           memory: 200m
   corenlp:
-    image: "nlpbox/corenlp"
+    image: 'nlpbox/corenlp'
     environment:
       - JAVA_XMX=200m
     ports:
@@ -43,7 +41,7 @@ services:
         limits:
           memory: 250m
   languagetools:
-    image: "erikvl87/languagetool"
+    image: 'erikvl87/languagetool'
     environment:
       - Java_Xmx=200m
       - Java_Xms=50m

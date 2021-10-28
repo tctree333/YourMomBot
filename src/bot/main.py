@@ -1,5 +1,5 @@
-from bot.client import YourMumClient
+from bot.client import YourMomClient
 from bot import BOT_TOKEN
 
-client = YourMumClient()
+client = YourMomClient()
 client.run(BOT_TOKEN)

@@ -4,21 +4,20 @@ export
 DISCORD_CHAT_EXPORTER_DIR = "lib/discord-chat-exporter"
 STANFORD_CORENLP_DIR = "lib/stanford-corenlp"
 RAW_DATA_DIR := "data/raw/ext"
-DOCKER_NAME := yourmumbot
+DOCKER_NAME := yourmombot
 DOCKER_TAG := $(DOCKER_NAME):latest
 DOCKER_MEM_MAX := "700m"
 DOCKER_CPU_MAX := "1.5" # 1024 * 3 / 4
 DHCR_PREFIX := $(DH_USER_NAME)
 GHCR_PREFIX := ghcr.io
-TERRAFORM_VARS := "inputVars.tfvars"
 
-EC2_IP := $(shell cd terraform && terraform output instance_ip)
+EC2_IP := "18.206.234.127"
 SSH_URL := "ssh://ec2-user@$(EC2_IP)"
 
-check-dotnet-version:
-ifeq ($(shell dotnet --version | grep "3\.1\..*"),)
-	$(error ".NET must be at version 3.1")
-endif
+# check-dotnet-version:
+# ifeq ($(shell dotnet --version | grep "3\.1\..*"),)
+# 	$(error ".NET must be at version 3.1")
+# endif
 
 NO_VENV ?= False
 check-python-venv:
@@ -57,20 +56,20 @@ clean-docker:
 
 clean-all: clean-data clean-logs clean-tmps
 
-setup-discord-chat-exporter: check-dotnet-version
-	@if [ ! -d $(DISCORD_CHAT_EXPORTER_DIR) ] ; \
-	then \
-		mkdir -p tmp/ && \
-		echo "Downloading DiscordChatExporter..." && \
-		wget -c -q https://github.com/Tyrrrz/DiscordChatExporter/releases/latest/download/DiscordChatExporter.CLI.zip -P tmp/; \
-		rm -rf $(DISCORD_CHAT_EXPORTER_DIR); \
-		mkdir -p $(DISCORD_CHAT_EXPORTER_DIR) && \
-		echo "Unzipping..." && \
-		unzip -q tmp/DiscordChatExporter.CLI.zip -d $(DISCORD_CHAT_EXPORTER_DIR) && \
-		rm -r tmp/; \
-	else \
-		echo "DiscordChatExporter already exists"; \
-	fi;
+# setup-discord-chat-exporter: check-dotnet-version
+# 	@if [ ! -d $(DISCORD_CHAT_EXPORTER_DIR) ] ; \
+# 	then \
+# 		mkdir -p tmp/ && \
+# 		echo "Downloading DiscordChatExporter..." && \
+# 		wget -c -q https://github.com/Tyrrrz/DiscordChatExporter/releases/latest/download/DiscordChatExporter.CLI.zip -P tmp/; \
+# 		rm -rf $(DISCORD_CHAT_EXPORTER_DIR); \
+# 		mkdir -p $(DISCORD_CHAT_EXPORTER_DIR) && \
+# 		echo "Unzipping..." && \
+# 		unzip -q tmp/DiscordChatExporter.CLI.zip -d $(DISCORD_CHAT_EXPORTER_DIR) && \
+# 		rm -r tmp/; \
+# 	else \
+# 		echo "DiscordChatExporter already exists"; \
+# 	fi;
 
 # deprecated: use build.py instead
 setup-stanford-corenlp:
@@ -89,10 +88,10 @@ setup-stanford-corenlp:
 	fi;
 
 gh-login:
-	@echo $(CR_PAT) | docker login $(GHCR_PREFIX) -u $(GH_USER_NAME) --password-stdin
+	@echo $(CR_PAT) | sudo docker login $(GHCR_PREFIX) -u $(GH_USER_NAME) --password-stdin
 
 dh-login:
-	@echo $(DH_PW) | docker login -u $(DH_USER_NAME) --password-stdin
+	@echo $(DH_PW) | sudo docker login -u $(DH_USER_NAME) --password-stdin
 
 run:
 	@cd src && python -m bot.main
@@ -103,7 +102,7 @@ run-api:
 docker-build:
 	@echo "Building docker image..."
 	@docker-compose -p $(DOCKER_NAME) build
-	@docker image prune -f
+	@sudo docker image prune -f
 
 docker-push:
 	@echo "Pushing docker image..."
@@ -135,13 +134,13 @@ docker-stop-api:
 	@docker-compose -p $(DOCKER_NAME) rm -f corenlp languagetools api
 
 docker-shell:
-	@docker exec -it $(DOCKER_NAME) /bin/bash
+	@sudo docker exec -it $(DOCKER_NAME) /bin/bash
 
 docker-stats:
-	@docker stats --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}\t{{.NetIO}}\t{{.BlockIO}}\t{{.PIDs}}"
+	@sudo docker stats --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}\t{{.NetIO}}\t{{.BlockIO}}\t{{.PIDs}}"
 
 docker-log:
-	@docker logs $(DOCKER_NAME)
+	@sudo docker logs $(DOCKER_NAME)
 
 docker-logs:
 	@docker-compose -p $(DOCKER_NAME) logs
@@ -164,15 +163,15 @@ deploy-setup:
 		sudo amazon-linux-extras install docker && \
 		sudo service docker start && \
 		sudo usermod -a -G docker ec2-user && \
-		docker info >/dev/null && \
-		sudo curl -L https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$$$$(uname -s)-$$$$(uname -m) -o /usr/local/bin/docker-compose && \
+		sudo docker info >/dev/null && \
+		sudo curl -L https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Linux-x86_64 -o /usr/local/bin/docker-compose && \
 		sudo chmod +x /usr/local/bin/docker-compose && \
 		docker-compose version'
 
 deploy-clean:
 	@echo "Stopping..."
 	@docker-compose -p $(DOCKER_NAME) -H $(SSH_URL) down
-	@docker -H $(SSH_URL) image prune -f
+	@sudo docker -H $(SSH_URL) image prune -f
 	
 deploy-pull:
 	@echo "Pulling image..."
@@ -181,7 +180,7 @@ deploy-pull:
 deploy-run:
 	@ENV=PROD DISCORD_BOT_TOKEN=$(DISCORD_BOT_TOKEN) \
 		docker-compose -p $(DOCKER_NAME) -H "ssh://ec2-user@$(EC2_IP)" \
-		up -d --no-build
+		up -d
 
 deploy:
 	@$(MAKE) deploy-setup
@@ -193,19 +192,14 @@ deploy-log:
 	@docker-compose -p $(DOCKER_NAME) -H "ssh://ec2-user@$(EC2_IP)" logs bot
 
 deploy-stats:
-	@docker -H $(SSH_URL) stats \
+	@sudo docker -H $(SSH_URL) stats \
 		--format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}\t{{.NetIO}}\t{{.BlockIO}}\t{{.PIDs}}"
 
-terraform-%:
-	terraform -chdir=terraform $* -var-file=$(TERRAFORM_VARS)
 
-terraform-output:
-	terraform -chdir=terraform output
-
-CHANNEL_ID ?= 727433810148458498
-data-scrape-discord: setup-discord-chat-exporter
-	-@rm -rf $(RAW_DATA_DIR)/discord
-	@mkdir -p $(RAW_DATA_DIR)/discord
-	@dotnet $(DISCORD_CHAT_EXPORTER_DIR)/DiscordChatExporter.Cli.dll \
-		export -t $(DISCORD_TOKEN) \
-		-c $(CHANNEL_ID) -o $(RAW_DATA_DIR)/discord/$(CHANNEL_ID).csv -f Csv
+# CHANNEL_ID ?= 727433810148458498
+# data-scrape-discord: setup-discord-chat-exporter
+# 	-@rm -rf $(RAW_DATA_DIR)/discord
+# 	@mkdir -p $(RAW_DATA_DIR)/discord
+# 	@dotnet $(DISCORD_CHAT_EXPORTER_DIR)/DiscordChatExporter.Cli.dll \
+# 		export -t $(DISCORD_TOKEN) \
+# 		-c $(CHANNEL_ID) -o $(RAW_DATA_DIR)/discord/$(CHANNEL_ID).csv -f Csv

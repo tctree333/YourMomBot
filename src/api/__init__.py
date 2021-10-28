@@ -20,7 +20,7 @@ WARM_UP_TEXT = "warm the model up"
 STAY_WARM_PERIOD = 60
 
 # logger config
-LOG_NAME = "yourmum.api"
+LOG_NAME = "yourmom.api"
 LOG_LEVEL = logging.INFO
 LOG_FORMAT = "%(asctime)s::%(levelname)8s::%(name)s::%(client_ip)s:: %(message)s"
 LOG_EVERY = 10
