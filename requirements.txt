@@ -14,7 +14,7 @@ guppy3==3.1.1
 h11==0.12.0
 huggingface-hub==0.0.12
 idna==2.10
-joblib==1.0.1
+joblib==1.2.0
 language-tool-python==2.5.4
 multidict==5.1.0
 nltk==3.6.2
